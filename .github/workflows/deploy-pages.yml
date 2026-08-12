@@ -23,8 +23,8 @@ jobs:
         run: |
           mkdir -p _site/rocks
           cp index.html styles.css app.js _site/
-          cp public/favicon.svg _site/favicon.svg
-          cp public/rocks/* _site/rocks/
+          cp favicon.svg _site/favicon.svg
+          cp rocks/* _site/rocks/
           touch _site/.nojekyll
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
