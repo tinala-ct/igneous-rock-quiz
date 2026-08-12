@@ -1,0 +1,47 @@
+:root { --ink:#233444; --muted:#607080; --orange:#ed7041; --orange-dark:#bd4e26; --teal:#168f88; --line:#eadbca; }
+* { box-sizing:border-box; }
+html { color-scheme:light; }
+body { margin:0; color:var(--ink); font-family:"Noto Sans Thai","Leelawadee UI",Tahoma,Arial,sans-serif; background:radial-gradient(circle at 15% 8%,#ffe4c9 0,transparent 22%),linear-gradient(135deg,#f7eee3,#e8f4ee); }
+button { font:inherit; }
+.app { min-height:100vh; padding:32px 18px 54px; }
+.shell { max-width:1180px; margin:auto; }
+header { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom:22px; }
+.eyebrow { color:var(--teal); font-size:.78rem; font-weight:800; letter-spacing:.12em; margin:0 0 7px; }
+.subtitle { margin:5px 0 0; color:var(--muted); }
+.score { background:#fff; border:1px solid var(--line); padding:12px 16px; border-radius:16px; font-weight:800; white-space:nowrap; box-shadow:0 8px 18px #80604012; }
+h1 { font-size:clamp(2rem,5vw,3.35rem); margin:0; letter-spacing:-.04em; }
+h1 em { font-style:normal; color:var(--orange); }
+h2 { font-size:clamp(1.3rem,3vw,1.85rem); line-height:1.35; margin:14px 0 7px; }
+.progress-label { display:flex; justify-content:space-between; margin:0 3px 7px; color:#5c6a75; font-weight:800; font-size:.9rem; }
+.track { height:10px; background:#e3d9cc; border-radius:100px; overflow:hidden; margin-bottom:18px; }
+.track div { height:100%; background:linear-gradient(90deg,var(--teal),#4fc3a3); border-radius:inherit; transition:width .35s; }
+.card { background:#fffdf9e8; border:1px solid #f0dfcf; border-radius:28px; box-shadow:0 18px 50px #4d332018; }
+.game { display:grid; grid-template-columns:minmax(320px,.95fr) 1.05fr; overflow:hidden; }
+.photo-wrap { min-height:630px; position:relative; background:#1c2528; }
+.photo-wrap img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
+.photo-label { position:absolute; top:17px; left:17px; color:#fff; background:#142126c7; border-radius:999px; padding:8px 12px; font-size:.82rem; font-weight:800; }
+.question { padding:34px; }
+.question>p { color:#687785; margin-top:0; }
+.badge { display:inline-block; background:#dff3eb; color:#08756e; border-radius:999px; font-size:.8rem; font-weight:800; padding:7px 11px; }
+.choices { display:grid; gap:10px; margin-top:22px; }
+.choice { width:100%; display:flex; align-items:center; gap:12px; text-align:left; cursor:pointer; border:1px solid #e5d8ca; background:#fff; color:var(--ink); padding:11px 13px; border-radius:14px; transition:.18s; }
+.choice:hover:not(:disabled) { transform:translateX(3px); border-color:var(--teal); background:#f3fcf9; }
+.choice:focus-visible,.primary:focus-visible { outline:3px solid #ffba77; outline-offset:3px; }
+.choice b { flex:0 0 29px; height:29px; display:grid; place-items:center; background:#fde9dd; color:#b64c25; border-radius:50%; font-size:.82rem; }
+.choice.correct { border-color:#20a378; background:#e2f6ea; }
+.choice.wrong { border-color:#e46250; background:#ffebe5; }
+.choice:disabled { cursor:default; opacity:.72; }
+.choice.correct:disabled,.choice.wrong:disabled { opacity:1; }
+.feedback { margin-top:18px; border-radius:14px; padding:13px 15px; }
+.feedback p { margin:5px 0 0; line-height:1.6; }
+.feedback.good { background:#e4f7ee; }
+.feedback.try { background:#fff0e8; }
+.primary { cursor:pointer; border:0; border-radius:13px; background:var(--orange); color:white; padding:12px 18px; font-weight:800; box-shadow:0 7px 0 var(--orange-dark); }
+.primary:hover { filter:brightness(1.04); transform:translateY(-1px); }
+.next { margin-top:18px; float:right; }
+.memory { margin:18px 4px 0; color:#4f6570; background:#fff7dc; border:1px solid #f1df9b; border-radius:16px; padding:13px 16px; line-height:1.65; }
+.finish { max-width:650px; margin:15vh auto; text-align:center; padding:48px 32px; }
+.finish h1 { margin:13px 0; }
+.result { font-size:1.4rem; }
+.finish .primary { margin-top:22px; }
+@media(max-width:800px){ .app{padding:22px 12px 44px}.game{grid-template-columns:1fr}.photo-wrap{min-height:360px}.question{padding:24px 18px}header{align-items:flex-start;flex-direction:column}.score{padding:9px 13px}.choice{font-size:.95rem}.next{float:none;width:100%;margin-top:20px} }
