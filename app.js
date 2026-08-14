@@ -1,7 +1,8 @@
 "use strict";
 
 const LETTERS = ["A","B","C","D","E"];
-const PASS_SCORE = 5;
+const QUESTIONS_PER_STAGE = 20;
+const PASS_SCORE = 16;
 const STORAGE_KEY = "rockQuest8Stages-v1";
 
 const STAGES = [
@@ -125,8 +126,20 @@ function loadState() {
 function saveState(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); }
 function seededShuffle(items, seed){ const out=[...items]; let x=seed>>>0; for(let i=out.length-1;i>0;i--){x=(x*1664525+1013904223)>>>0;const j=x%(i+1);[out[i],out[j]]=[out[j],out[i]];} return out; }
 function makeQuestions(stage, seed){
-  const order=seededShuffle(stage.items,seed);
-  return order.map((item,i)=>({item,mode:i%2===0?"name":"clue",seed:seed+i*97}));
+  const base=stage.items.flatMap(item=>[
+    {item,mode:"name"},
+    {item,mode:"clue"}
+  ]);
+  const repeatedItems=seededShuffle([...stage.items,...stage.items],seed+509).slice(0,8);
+  const extras=repeatedItems.map((item,i)=>({item,mode:i<4?"name":"clue"}));
+  const pool=seededShuffle([...base,...extras],seed);
+  const arranged=[];
+  while(pool.length){
+    const previousId=arranged.at(-1)?.item.id;
+    const nextIndex=pool.findIndex(q=>q.item.id!==previousId);
+    arranged.push(pool.splice(nextIndex<0?0:nextIndex,1)[0]);
+  }
+  return arranged.map((q,i)=>({...q,seed:seed+i*97}));
 }
 function correctValue(q){ return q.mode==="name"?q.item.id:`clue:${q.item.id}`; }
 function makeOptions(q,stage){
@@ -148,7 +161,7 @@ function renderMap(){
   if(state.currentStage>=STAGES.length) return renderComplete();
   const current=safeStageIndex();
   app.innerHTML=`<main class="app"><section class="shell">${renderHeader(`<span class="status-chip">ผ่านแล้ว ${state.completed.length} / 8 ด่าน</span>`)}
-    <section class="hero"><div class="hero-grid"><div><p class="eyebrow" style="color:#ffd47a">ภารกิจนักสืบธรณีวิทยา</p><h2>พิชิตหินและแร่ตามลำดับทั้ง 8 ด่าน</h2><p>แต่ละด่านมี 6 คำถามจากภาพ ตัวเลือก A–E และต้องได้อย่างน้อย <strong>${PASS_SCORE}/6</strong> คะแนนเพื่อปลดล็อกด่านต่อไป</p></div><div class="rule"><strong>กติกาสำคัญ</strong><p>ถ้าคะแนนไม่ถึงเกณฑ์ ความคืบหน้าทั้งหมดจะถูกล้าง และต้องกลับไปเริ่มด่าน 1 เสมอ</p></div></div></section>
+    <section class="hero"><div class="hero-grid"><div><p class="eyebrow" style="color:#ffd47a">ภารกิจนักสืบธรณีวิทยา</p><h2>พิชิตหินและแร่ตามลำดับทั้ง 8 ด่าน</h2><p>แต่ละด่านมี ${QUESTIONS_PER_STAGE} คำถามจากภาพ ตัวเลือก A–E และต้องได้อย่างน้อย <strong>${PASS_SCORE}/${QUESTIONS_PER_STAGE}</strong> คะแนนเพื่อปลดล็อกด่านต่อไป</p></div><div class="rule"><strong>กติกาสำคัญ</strong><p>ภาพเดิมจะกลับมาถามซ้ำหลายรูปแบบเพื่อช่วยจำ หากคะแนนไม่ถึงเกณฑ์ ความคืบหน้าทั้งหมดจะถูกล้างและกลับด่าน 1</p></div></div></section>
     <section class="map" aria-label="แผนที่แปดด่าน">${STAGES.map((stage,i)=>{
       const done=state.completed.includes(i), active=i===current, locked=i>current;
       return `<article class="stage-card ${done?"done":""} ${active?"current":""} ${locked?"locked":""}" style="--stage:${stage.color}"><div class="stage-no">${done?"✓":stage.id}</div><h3>${stage.title}</h3><div class="en">${stage.english}</div><p>${stage.summary}</p><div class="stage-state">${done?"ผ่านแล้ว":active?"ด่านปัจจุบัน":"🔒 ยังไม่ปลดล็อก"}</div>${active?`<button class="primary stage-start" data-stage="${i}">เริ่มด่าน ${stage.id}</button>`:""}</article>`;
@@ -165,7 +178,7 @@ function startStage(i){
 function renderQuiz(){
   const stage=STAGES[stageIndex], q=questions[questionIndex], correct=correctValue(q), options=makeOptions(q,stage), progress=Math.round(((questionIndex+1)/questions.length)*100);
   app.innerHTML=`<main class="app" style="--stage:${stage.color}"><section class="shell">${renderHeader(`<span class="score">⭐ ${stageScore} คะแนน</span>`)}
-    <div class="progress-label"><span>ด่าน ${stage.id}/8 · ข้อ ${questionIndex+1}/6</span><span>${progress}%</span></div><div class="track" role="progressbar" aria-valuemin="1" aria-valuemax="6" aria-valuenow="${questionIndex+1}"><div style="width:${progress}%"></div></div>
+    <div class="progress-label"><span>ด่าน ${stage.id}/8 · ข้อ ${questionIndex+1}/${QUESTIONS_PER_STAGE}</span><span>${progress}%</span></div><div class="track" role="progressbar" aria-valuemin="1" aria-valuemax="${QUESTIONS_PER_STAGE}" aria-valuenow="${questionIndex+1}"><div style="width:${progress}%"></div></div>
     <section class="game"><div class="photo-wrap"><img src="${q.item.image}" alt="ภาพตัวอย่างสำหรับคำถามด่าน ${stage.id} ข้อ ${questionIndex+1}" /><span class="photo-label">ดูภาพให้ละเอียด</span></div>
       <div class="question"><span class="badge">${q.mode==="name"?"ทายชื่อจากภาพ":"ชี้หลักฐานเด่น"}</span><h2>${q.mode==="name"?"ตัวอย่างในภาพนี้คืออะไร?":"ข้อใดอธิบายลักษณะเด่นของตัวอย่างนี้ได้ถูกต้อง?"}</h2><p>เลือกคำตอบที่เหมาะสมที่สุดเพียง 1 ข้อ</p>
       <div class="choices">${options.map((value,i)=>{const cls=selected===null?"":value===correct?"correct":value===selected?"wrong":"";return `<button class="choice ${cls}" data-value="${value}" ${selected===null?"":"disabled"}><b>${LETTERS[i]}</b><span>${optionText(value,q,stage)}</span></button>`;}).join("")}</div>
@@ -180,7 +193,7 @@ function nextQuestion(){ if(selected===null)return; if(questionIndex===questions
 
 function renderStageResult(){
   view="result"; const stage=STAGES[stageIndex], passed=stageScore>=PASS_SCORE;
-  app.innerHTML=`<main class="app" style="--stage:${stage.color}"><section class="result-card"><div class="result-orb">${passed?"✓":"↺"}</div><span class="badge">ด่าน ${stage.id} / 8</span><h1>${passed?"ผ่านด่าน!":"ยังไม่ผ่านด่าน"}</h1><p class="big">${stageScore} / 6 คะแนน</p><p>${passed?`คุณจำแนก ${stage.title} ได้ตามเกณฑ์แล้ว`:`ต้องได้อย่างน้อย ${PASS_SCORE}/6 คะแนน`}</p>${passed?"":`<p class="danger-note"><strong>ตามกติกา:</strong> ความคืบหน้าทั้งหมดจะถูกล้าง และกลับไปเริ่มที่ด่าน 1</p>`}<div class="actions"><button class="primary ${passed?"":"reset-primary"}" id="result-action">${passed?(stageIndex===7?"รับตรานักสืบ":"ไปด่านถัดไป →"):"กลับไปเริ่มด่าน 1"}</button></div></section></main>`;
+  app.innerHTML=`<main class="app" style="--stage:${stage.color}"><section class="result-card"><div class="result-orb">${passed?"✓":"↺"}</div><span class="badge">ด่าน ${stage.id} / 8</span><h1>${passed?"ผ่านด่าน!":"ยังไม่ผ่านด่าน"}</h1><p class="big">${stageScore} / ${QUESTIONS_PER_STAGE} คะแนน</p><p>${passed?`คุณจำแนก ${stage.title} ได้ตามเกณฑ์แล้ว`:`ต้องได้อย่างน้อย ${PASS_SCORE}/${QUESTIONS_PER_STAGE} คะแนน`}</p>${passed?"":`<p class="danger-note"><strong>ตามกติกา:</strong> ความคืบหน้าทั้งหมดจะถูกล้าง และกลับไปเริ่มที่ด่าน 1</p>`}<div class="actions"><button class="primary ${passed?"":"reset-primary"}" id="result-action">${passed?(stageIndex===7?"รับตรานักสืบ":"ไปด่านถัดไป →"):"กลับไปเริ่มด่าน 1"}</button></div></section></main>`;
   document.querySelector("#result-action").addEventListener("click",()=>passed?passStage():resetProgress());
 }
 function passStage(){
